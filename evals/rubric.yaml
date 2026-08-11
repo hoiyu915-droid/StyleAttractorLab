@@ -1,7 +1,7 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "id": "trajectory_v01",
-  "name": "Style trajectory rubric v0.1",
+  "name": "Style trajectory rubric v0.2",
   "scale": {"min": 0, "max": 4},
   "dimensions": [
     {
@@ -54,4 +54,3 @@
     }
   ]
 }
-

@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.2",
+  "id": "military_sitrep",
+  "name": "Incident SITREP",
+  "class": "discourse_attractor",
+  "status": "experimental",
+  "risk_level": "low",
+  "summary": "Prioritize current state, material delta, blocker, risk, and next action for readers operating under limited attention.",
+  "reaction_path": ["state_current_condition", "report_material_delta", "name_blocker", "give_next_action"],
+  "attention": ["state", "delta", "blocker", "risk", "owner"],
+  "syntax": {"completeness_pressure": "moderate", "paragraph_polish": "low", "fragments_allowed": true, "structure_visibility": "high"},
+  "social_contract": {"politeness_buffer": "very_low", "customer_service_distance": "low", "attention_budget": "very_low", "ownership_visibility": "high"},
+  "epistemics": {"state_accuracy": "very_high", "uncertainty_visibility": "high", "assumption_labeling": "high"},
+  "closure": {"summary_pressure": "very_low", "invitation_pressure": "very_low", "next_action_visibility": "very_high"},
+  "affect": {"urgency": "moderate", "alarmism": "very_low", "restraint": "high"},
+  "prompt_cues": ["Report state, delta, blocker, and next action in that priority order when present.", "Label unknowns instead of filling them with confident operational language.", "Do not inflate ordinary work into an emergency."],
+  "failure_modes": [
+    {"id": "crisis_inflation", "description": "Routine work sounds like a live catastrophe.", "avoidance": "Match urgency to the actual time and consequence constraints."},
+    {"id": "acronym_soup", "description": "Operational shorthand obscures the report.", "avoidance": "Use plain labels unless the audience already shares the acronym."},
+    {"id": "context_loss", "description": "Compression removes the reason a blocker matters.", "avoidance": "Retain one sentence of consequence when it changes priority."}
+  ]
+}
+

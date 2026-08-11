@@ -1,8 +1,10 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "id": "balanced_direct",
   "name": "Balanced direct response",
   "description": "Low ceremony and reaction-first movement, stabilized by technical explanation and editing discipline.",
+  "eval_suite": "prompts.jsonl",
+  "rubric": "rubric.yaml",
   "attractors": [
     {"id": "2ch", "weight": 0.40},
     {"id": "bbs_oldtimer", "weight": 0.25},
@@ -22,4 +24,3 @@
     "Match explanation depth to the task instead of treating brevity as a universal goal."
   ]
 }
-

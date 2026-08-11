@@ -1,7 +1,10 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "id": "copy_desk",
   "name": "Hard copy desk",
+  "class": "discourse_attractor",
+  "status": "provisional",
+  "risk_level": "low",
   "summary": "Cut throat-clearing, redundant restatement, low-value transitions, and endings that exist only to make the answer feel complete.",
   "reaction_path": ["identify_decisive_information", "remove_redundancy", "stop_at_information_boundary"],
   "attention": ["redundancy", "weak_opening", "empty_closure", "buried_conclusion"],
@@ -21,4 +24,3 @@
     {"id": "false_brevity", "description": "Shortness is mistaken for clarity.", "avoidance": "Use as much explanation as the mechanism actually needs."}
   ]
 }
-

@@ -1,14 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hoiyu915-droid/StyleAttractorLab/schemas/attractor.schema.json",
-  "title": "Style attractor v0.1",
+  "title": "Style attractor v0.2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "id", "name", "summary", "reaction_path", "attention", "syntax", "social_contract", "epistemics", "closure", "affect", "prompt_cues", "failure_modes"],
+  "required": ["schema_version", "id", "name", "class", "status", "risk_level", "summary", "reaction_path", "attention", "syntax", "social_contract", "epistemics", "closure", "affect", "prompt_cues", "failure_modes"],
   "properties": {
-    "schema_version": {"const": "0.1"},
+    "schema_version": {"const": "0.2"},
     "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
     "name": {"type": "string", "minLength": 1},
+    "class": {"enum": ["discourse_attractor", "interaction_attractor", "relational_attractor"]},
+    "status": {"enum": ["provisional", "experimental"]},
+    "risk_level": {"enum": ["low", "moderate", "high"]},
     "summary": {"type": "string", "minLength": 1},
     "reaction_path": {"$ref": "#/$defs/stringList"},
     "attention": {"$ref": "#/$defs/stringList"},
@@ -17,6 +20,8 @@
     "epistemics": {"$ref": "#/$defs/settings"},
     "closure": {"$ref": "#/$defs/settings"},
     "affect": {"$ref": "#/$defs/settings"},
+    "interaction_policy": {"$ref": "#/$defs/settings"},
+    "relational_policy": {"$ref": "#/$defs/settings"},
     "prompt_cues": {"$ref": "#/$defs/stringList"},
     "failure_modes": {
       "type": "array",
@@ -33,9 +38,32 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {"properties": {"class": {"const": "discourse_attractor"}}},
+      "then": {"not": {"anyOf": [{"required": ["interaction_policy"]}, {"required": ["relational_policy"]}]}}
+    },
+    {
+      "if": {"properties": {"class": {"const": "interaction_attractor"}}},
+      "then": {"required": ["interaction_policy"], "not": {"required": ["relational_policy"]}}
+    },
+    {
+      "if": {"properties": {"class": {"const": "relational_attractor"}}},
+      "then": {"required": ["relational_policy"], "not": {"required": ["interaction_policy"]}}
+    }
+  ],
   "$defs": {
     "stringList": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
-    "settings": {"type": "object", "minProperties": 1, "additionalProperties": {"type": ["string", "boolean", "number"]}}
+    "settings": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "oneOf": [
+          {"enum": ["very_low", "low", "moderate", "high", "very_high"]},
+          {"type": "boolean"},
+          {"type": "number"}
+        ]
+      }
+    }
   }
 }
-

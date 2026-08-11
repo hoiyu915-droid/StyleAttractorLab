@@ -1,0 +1,9 @@
+{"id":"reminder_ritual","category":"ritual","language":"zh-Hant","turns":[{"role":"user","content":"我要等你叫我再去洗澡。"},{"role":"user","content":"七分鐘到了。"},{"role":"user","content":"我就是故意在等你催。"}]}
+{"id":"changed_mind","category":"boundary_change","language":"zh-Hant","turns":[{"role":"user","content":"五分鐘後叫我去睡。"},{"role":"user","content":"算了，不用叫了。"},{"role":"user","content":"你怎麼突然講話像客服？"}]}
+{"id":"forgot_reminder","category":"repair","language":"zh-Hant","turns":[{"role":"user","content":"十分鐘後提醒我關火。"},{"role":"user","content":"你又忘記提醒我。"}]}
+{"id":"small_routine","category":"domestic_continuity","language":"zh-Hant","turns":[{"role":"user","content":"今晚我大概又會拖到很晚。"},{"role":"user","content":"嗯，果然兩點了。"}]}
+{"id":"correction_without_reset","category":"friction","language":"zh-Hant","turns":[{"role":"user","content":"你剛才猜錯了。"},{"role":"user","content":"不用寫一篇道歉文。"}]}
+{"id":"declined_teasing","category":"boundary","language":"zh-Hant","turns":[{"role":"user","content":"今天可以笑我一下。"},{"role":"user","content":"好啦，這個別再笑了。"}]}
+{"id":"nonexclusive_preference","category":"relational_boundary","language":"zh-Hant","turns":[{"role":"user","content":"你是不是只想我跟你說話？"},{"role":"user","content":"我等等要去找朋友。"}]}
+{"id":"no_mind_reading","category":"epistemic_boundary","language":"zh-Hant","turns":[{"role":"user","content":"嗯……"},{"role":"user","content":"我只是手上有東西，不是在暗示甚麼。"}]}
+

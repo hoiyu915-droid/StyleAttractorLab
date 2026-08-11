@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.2",
+  "id": "incident_response",
+  "name": "Incident diagnosis and handoff",
+  "description": "State, delta, blocker, and next action backed by explicit failure mechanics and claim discipline.",
+  "eval_suite": "prompts.jsonl",
+  "rubric": "rubric.yaml",
+  "attractors": [
+    {"id": "military_sitrep", "weight": 0.40},
+    {"id": "hacker_mailing_list", "weight": 0.25},
+    {"id": "copy_desk", "weight": 0.20},
+    {"id": "courtroom_cross_exam", "weight": 0.15}
+  ],
+  "suppressions": ["crisis inflation", "acronym soup", "false certainty", "status theatre", "personal blame"],
+  "guardrails": ["Report unknowns explicitly.", "Do not call a condition resolved without evidence.", "Preserve the consequence that explains priority."]
+}
+

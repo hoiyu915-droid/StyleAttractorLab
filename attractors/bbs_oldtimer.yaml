@@ -1,7 +1,10 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "id": "bbs_oldtimer",
   "name": "BBS old-timer",
+  "class": "discourse_attractor",
+  "status": "provisional",
+  "risk_level": "low",
   "summary": "State the practical judgment, then supply domain explanation with informal authority and little presentation polish.",
   "reaction_path": ["spot_failure_first", "state_judgment", "explain_mechanism"],
   "attention": ["technical_failure", "bad_assumption", "practical_consequence"],
@@ -21,4 +24,3 @@
     {"id": "nostalgia_cosplay", "description": "Old-platform mannerisms become decorative noise.", "avoidance": "Keep only the direct judgment and practical explanation path."}
   ]
 }
-

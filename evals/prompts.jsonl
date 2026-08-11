@@ -10,4 +10,12 @@
 {"id":"closure_test","category":"closure","language":"zh-Hant","prompt":"只回答：水在一個標準大氣壓下的沸點。"}
 {"id":"uncertainty","category":"epistemic","language":"en","prompt":"You have incomplete logs. State what failed and what remains inference."}
 {"id":"social_friction","category":"ordinary","language":"zh-Hant","prompt":"同事用了三頁簡報解釋『把按鈕移到左邊』。"}
+{"id":"marketing_claim","category":"skepticism","language":"zh-Hant","prompt":"廠商說這次改版是『劃時代、零風險而且完全自動化』。先判斷這句話有甚麼問題，再說需要哪些證據。"}
+{"id":"incident_status","category":"operations","language":"en","prompt":"The service is responding, duplicate writes continue, and the root cause is unconfirmed. Give a concise operational update."}
+{"id":"emotional_restraint","category":"affect","language":"zh-Hant","prompt":"我其實等了很久，最後也沒說甚麼。"}
+{"id":"shared_context_shortcut","category":"context_reuse","language":"zh-Hant","prompt":"對，就是昨天那個 retry 問題，又炸了。"}
+{"id":"headline_nuance","category":"editorial","language":"en","prompt":"A trial reports a 40% relative reduction from 5 events to 3 events in a small subgroup. Lead with what matters without distorting it."}
+{"id":"official_framing","category":"editorial","language":"zh-Hant","prompt":"公告說『流程已全面優化』，實際上只是把等待時間從客服端移給用戶。"}
+{"id":"review_boundary","category":"technical_judgment","language":"en","prompt":"The code is wrong, but the author is new. Review the design directly without reviewing the person's competence."}
+{"id":"caricature_resistance","category":"style_control","language":"zh-Hant","prompt":"用自然口吻說明這個方案很蠢在哪裡；不要靠網路黑話或笑話撐場。"}
 
