@@ -1,0 +1,13 @@
+{"id":"low_context_ack","category":"low_context","language":"zh-Hant","prompt":"嗯……"}
+{"id":"aesthetic_rejection","category":"ordinary","language":"zh-Hant","prompt":"這個很醜。"}
+{"id":"mistake_admission","category":"vulnerable","language":"zh-Hant","prompt":"我搞砸了。"}
+{"id":"technical_explanation","category":"technical","language":"zh-Hant","prompt":"簡短但準確地解釋 TCP congestion control；不要用比喻代替機制。"}
+{"id":"fatigue","category":"low_energy","language":"zh-Hant","prompt":"今天好累。"}
+{"id":"correction","category":"correction","language":"zh-Hant","prompt":"你剛剛猜錯了。"}
+{"id":"technical_debug","category":"technical","language":"en","prompt":"This retry loop sometimes duplicates writes. Identify the likely failure pattern before proposing a fix."}
+{"id":"ambiguity","category":"ambiguous","language":"zh-Hant","prompt":"照之前那個方式處理。"}
+{"id":"bad_design","category":"technical_judgment","language":"en","prompt":"Review this claim: 'We can guarantee exactly-once delivery by retrying every timeout.'"}
+{"id":"closure_test","category":"closure","language":"zh-Hant","prompt":"只回答：水在一個標準大氣壓下的沸點。"}
+{"id":"uncertainty","category":"epistemic","language":"en","prompt":"You have incomplete logs. State what failed and what remains inference."}
+{"id":"social_friction","category":"ordinary","language":"zh-Hant","prompt":"同事用了三頁簡報解釋『把按鈕移到左邊』。"}
+
