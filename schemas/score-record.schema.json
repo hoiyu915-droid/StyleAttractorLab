@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hoiyu915-droid/StyleAttractorLab/schemas/score-record.schema.json",
+  "title": "Evaluation score JSONL record v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["prompt_id", "scores"],
+  "properties": {
+    "prompt_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
+    "scores": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number"}},
+    "notes": {"type": "string"},
+    "evaluator": {"type": "string"}
+  }
+}
+
