@@ -11,13 +11,22 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-SCHEMA_VERSION = "0.1"
+SCHEMA_VERSION = "0.2"
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 LEVELS = {"very_low", "low", "moderate", "high", "very_high"}
+ATTRACTOR_CLASSES = {
+    "discourse_attractor",
+    "interaction_attractor",
+    "relational_attractor",
+}
+ATTRACTOR_STATUSES = {"provisional", "experimental"}
+RISK_LEVELS = {"low", "moderate", "high"}
+EVAL_FILE_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+\.jsonl$")
+RUBRIC_FILE_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+\.yaml$")
 
 
 class LabValidationError(ValueError):
-    """Raised when a lab document or repository violates the v0.1 contract."""
+    """Raised when a lab document or repository violates the v0.2 contract."""
 
 
 def load_document(path: str | Path) -> dict[str, Any]:
@@ -75,6 +84,9 @@ def validate_attractor(record: dict[str, Any], source: Path) -> str:
             "schema_version",
             "id",
             "name",
+            "class",
+            "status",
+            "risk_level",
             "summary",
             "reaction_path",
             "attention",
@@ -91,6 +103,12 @@ def validate_attractor(record: dict[str, Any], source: Path) -> str:
     if record["schema_version"] != SCHEMA_VERSION:
         raise LabValidationError(f"{source}: unsupported schema_version")
     attractor_id = _validate_id(record["id"], source)
+    if not isinstance(record["class"], str) or record["class"] not in ATTRACTOR_CLASSES:
+        raise LabValidationError(f"{source}: unknown attractor class '{record['class']}'")
+    if not isinstance(record["status"], str) or record["status"] not in ATTRACTOR_STATUSES:
+        raise LabValidationError(f"{source}: unknown status '{record['status']}'")
+    if not isinstance(record["risk_level"], str) or record["risk_level"] not in RISK_LEVELS:
+        raise LabValidationError(f"{source}: unknown risk_level '{record['risk_level']}'")
     if not isinstance(record["name"], str) or not record["name"].strip():
         raise LabValidationError(f"{source}: 'name' must be a non-empty string")
     if not isinstance(record["summary"], str) or not record["summary"].strip():
@@ -99,7 +117,25 @@ def validate_attractor(record: dict[str, Any], source: Path) -> str:
     _string_list(record["attention"], source, "attention")
     _string_list(record["prompt_cues"], source, "prompt_cues")
 
-    for section in ("syntax", "social_contract", "epistemics", "closure", "affect"):
+    sections = ["syntax", "social_contract", "epistemics", "closure", "affect"]
+    class_policy = {
+        "discourse_attractor": None,
+        "interaction_attractor": "interaction_policy",
+        "relational_attractor": "relational_policy",
+    }[record["class"]]
+    for policy_name in ("interaction_policy", "relational_policy"):
+        if policy_name in record and policy_name != class_policy:
+            raise LabValidationError(
+                f"{source}: '{policy_name}' is not allowed for {record['class']}"
+            )
+    if class_policy is not None:
+        if class_policy not in record:
+            raise LabValidationError(
+                f"{source}: {record['class']} requires '{class_policy}'"
+            )
+        sections.append(class_policy)
+
+    for section in sections:
         value = record[section]
         if not isinstance(value, dict) or not value:
             raise LabValidationError(f"{source}: '{section}' must be a non-empty object")
@@ -110,9 +146,8 @@ def validate_attractor(record: dict[str, Any], source: Path) -> str:
                 raise LabValidationError(
                     f"{source}: '{section}.{key}' must be a scalar"
                 )
-            if isinstance(setting, str) and setting.endswith("_low"):
-                if setting not in LEVELS:
-                    raise LabValidationError(f"{source}: unknown level '{setting}'")
+            if isinstance(setting, str) and setting not in LEVELS:
+                raise LabValidationError(f"{source}: unknown level '{setting}'")
 
     failures = record["failure_modes"]
     if not isinstance(failures, list) or not failures:
@@ -135,7 +170,16 @@ def validate_attractor(record: dict[str, Any], source: Path) -> str:
 def validate_recipe(record: dict[str, Any], source: Path) -> str:
     _require(
         record,
-        ("schema_version", "id", "name", "attractors", "suppressions", "guardrails"),
+        (
+            "schema_version",
+            "id",
+            "name",
+            "eval_suite",
+            "rubric",
+            "attractors",
+            "suppressions",
+            "guardrails",
+        ),
         source,
     )
     if record["schema_version"] != SCHEMA_VERSION:
@@ -143,6 +187,10 @@ def validate_recipe(record: dict[str, Any], source: Path) -> str:
     recipe_id = _validate_id(record["id"], source)
     if not isinstance(record["name"], str) or not record["name"].strip():
         raise LabValidationError(f"{source}: 'name' must be a non-empty string")
+    if not isinstance(record["eval_suite"], str) or not EVAL_FILE_PATTERN.fullmatch(record["eval_suite"]):
+        raise LabValidationError(f"{source}: invalid eval_suite filename")
+    if not isinstance(record["rubric"], str) or not RUBRIC_FILE_PATTERN.fullmatch(record["rubric"]):
+        raise LabValidationError(f"{source}: invalid rubric filename")
     entries = record["attractors"]
     if not isinstance(entries, list) or not entries:
         raise LabValidationError(f"{source}: 'attractors' must be a non-empty list")
@@ -191,6 +239,8 @@ def validate_rubric(record: dict[str, Any], source: Path) -> list[str]:
         if dimension_id in ids:
             raise LabValidationError(f"{source}: duplicate dimension '{dimension_id}'")
         ids.append(dimension_id)
+        if not isinstance(dimension["description"], str) or not dimension["description"].strip():
+            raise LabValidationError(f"{source}: '{dimension_id}' description is empty")
         if dimension["direction"] not in {"higher_is_better", "lower_is_better"}:
             raise LabValidationError(f"{source}: invalid direction for '{dimension_id}'")
         anchors = dimension["anchors"]
@@ -216,6 +266,52 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _validate_prompt_suite(path: Path) -> int:
+    rows = _read_jsonl(path)
+    if not rows:
+        raise LabValidationError(f"{path}: no prompts found")
+    prompt_ids: set[str] = set()
+    prompt_modes: set[str] = set()
+    for number, prompt in enumerate(rows, start=1):
+        missing = {"id", "category", "language"} - prompt.keys()
+        if missing:
+            raise LabValidationError(
+                f"{path}:{number}: missing {', '.join(sorted(missing))}"
+            )
+        prompt_id = _validate_id(prompt["id"], path, "prompt.id")
+        for field in ("category", "language"):
+            if not isinstance(prompt[field], str) or not prompt[field].strip():
+                raise LabValidationError(f"{path}:{number}: '{field}' must be non-empty")
+        if prompt_id in prompt_ids:
+            raise LabValidationError(f"{path}: duplicate prompt id '{prompt_id}'")
+        prompt_ids.add(prompt_id)
+        has_prompt = isinstance(prompt.get("prompt"), str) and bool(prompt["prompt"].strip())
+        turns = prompt.get("turns")
+        has_turns = isinstance(turns, list) and bool(turns)
+        if has_prompt == has_turns:
+            raise LabValidationError(
+                f"{path}:{number}: provide exactly one of 'prompt' or non-empty 'turns'"
+            )
+        prompt_modes.add("multi_turn" if has_turns else "single_turn")
+        if has_turns:
+            for turn_number, turn in enumerate(turns, start=1):
+                if not isinstance(turn, dict):
+                    raise LabValidationError(
+                        f"{path}:{number}: turn {turn_number} must be an object"
+                    )
+                if turn.get("role") != "user":
+                    raise LabValidationError(
+                        f"{path}:{number}: turn {turn_number} role must be 'user'"
+                    )
+                if not isinstance(turn.get("content"), str) or not turn["content"].strip():
+                    raise LabValidationError(
+                        f"{path}:{number}: turn {turn_number} content is empty"
+                    )
+    if len(prompt_modes) != 1:
+        raise LabValidationError(f"{path}: prompt suite mixes single-turn and multi-turn records")
+    return len(rows)
+
+
 def validate_repository(root: str | Path) -> dict[str, int]:
     root = Path(root).resolve()
     attractors: dict[str, Path] = {}
@@ -228,6 +324,9 @@ def validate_repository(root: str | Path) -> dict[str, int]:
         raise LabValidationError(f"{root}: no attractors found")
 
     recipes: dict[str, Path] = {}
+    referenced_attractors: set[str] = set()
+    referenced_eval_suites: set[str] = set()
+    referenced_rubrics: set[str] = set()
     for path in sorted((root / "recipes").glob("*.yaml")):
         record = load_document(path)
         recipe_id = validate_recipe(record, path)
@@ -239,37 +338,55 @@ def validate_repository(root: str | Path) -> dict[str, int]:
                 raise LabValidationError(
                     f"{path}: unknown attractor reference '{entry['id']}'"
                 )
+            referenced_attractors.add(entry["id"])
+        eval_path = root / "evals" / record["eval_suite"]
+        rubric_path = root / "evals" / record["rubric"]
+        if not eval_path.is_file():
+            raise LabValidationError(f"{path}: eval suite not found: {record['eval_suite']}")
+        if not rubric_path.is_file():
+            raise LabValidationError(f"{path}: rubric not found: {record['rubric']}")
+        referenced_eval_suites.add(record["eval_suite"])
+        referenced_rubrics.add(record["rubric"])
     if not recipes:
         raise LabValidationError(f"{root}: no recipes found")
 
-    rubric_paths = sorted((root / "evals").glob("rubric*.yaml"))
-    if not rubric_paths:
-        raise LabValidationError(f"{root}: no rubric found")
+    rubric_paths = [root / "evals" / name for name in sorted(referenced_rubrics)]
     for path in rubric_paths:
         validate_rubric(load_document(path), path)
 
-    prompts_path = root / "evals" / "prompts.jsonl"
-    prompts = _read_jsonl(prompts_path)
-    if not prompts:
-        raise LabValidationError(f"{prompts_path}: no prompts found")
-    prompt_ids: set[str] = set()
-    required_prompt_fields = {"id", "category", "language", "prompt"}
-    for number, prompt in enumerate(prompts, start=1):
-        missing = required_prompt_fields - prompt.keys()
-        if missing:
-            raise LabValidationError(
-                f"{prompts_path}:{number}: missing {', '.join(sorted(missing))}"
-            )
-        prompt_id = _validate_id(prompt["id"], prompts_path, "prompt.id")
-        if prompt_id in prompt_ids:
-            raise LabValidationError(f"{prompts_path}: duplicate prompt id '{prompt_id}'")
-        prompt_ids.add(prompt_id)
+    prompt_count = sum(
+        _validate_prompt_suite(root / "evals" / name)
+        for name in sorted(referenced_eval_suites)
+    )
+    available_eval_suites = {
+        path.name for path in (root / "evals").glob("*prompts.jsonl")
+    }
+    available_rubrics = {
+        path.name for path in (root / "evals").glob("rubric*.yaml")
+    }
+    unused_eval_suites = available_eval_suites - referenced_eval_suites
+    unused_rubrics = available_rubrics - referenced_rubrics
+    if unused_eval_suites:
+        raise LabValidationError(
+            f"unreferenced eval suites: {', '.join(sorted(unused_eval_suites))}"
+        )
+    if unused_rubrics:
+        raise LabValidationError(
+            f"unreferenced rubrics: {', '.join(sorted(unused_rubrics))}"
+        )
+    unreferenced = set(attractors) - referenced_attractors
+    if unreferenced:
+        raise LabValidationError(
+            f"unreferenced attractors: {', '.join(sorted(unreferenced))}"
+        )
 
     return {
         "attractors": len(attractors),
         "recipes": len(recipes),
         "rubrics": len(rubric_paths),
-        "prompts": len(prompts),
+        "prompt_suites": len(referenced_eval_suites),
+        "prompts": prompt_count,
+        "unreferenced_attractors": 0,
     }
 
 
@@ -281,11 +398,51 @@ def _catalog(root: Path) -> dict[str, dict[str, Any]]:
     return result
 
 
+def catalog_records(
+    root: str | Path,
+    *,
+    attractor_class: str | None = None,
+    status: str | None = None,
+    risk_level: str | None = None,
+) -> list[dict[str, str]]:
+    root = Path(root).resolve()
+    if attractor_class is not None and attractor_class not in ATTRACTOR_CLASSES:
+        raise LabValidationError(f"unknown attractor class '{attractor_class}'")
+    if status is not None and status not in ATTRACTOR_STATUSES:
+        raise LabValidationError(f"unknown attractor status '{status}'")
+    if risk_level is not None and risk_level not in RISK_LEVELS:
+        raise LabValidationError(f"unknown risk level '{risk_level}'")
+    result: list[dict[str, str]] = []
+    for record in _catalog(root).values():
+        if attractor_class is not None and record["class"] != attractor_class:
+            continue
+        if status is not None and record["status"] != status:
+            continue
+        if risk_level is not None and record["risk_level"] != risk_level:
+            continue
+        result.append(
+            {
+                "id": record["id"],
+                "name": record["name"],
+                "class": record["class"],
+                "status": record["status"],
+                "risk_level": record["risk_level"],
+                "summary": record["summary"],
+            }
+        )
+    return sorted(result, key=lambda item: (item["class"], item["id"]))
+
+
 def assemble_recipe(root: str | Path, recipe_path: str | Path) -> str:
     root = Path(root).resolve()
     recipe_path = Path(recipe_path)
     if not recipe_path.is_absolute():
         recipe_path = root / recipe_path
+    recipe_path = recipe_path.resolve()
+    try:
+        recipe_path.relative_to(root)
+    except ValueError as error:
+        raise LabValidationError("recipe must be inside the lab root") from error
     recipe = load_document(recipe_path)
     validate_recipe(recipe, recipe_path)
     catalog = _catalog(root)
@@ -307,6 +464,7 @@ def assemble_recipe(root: str | Path, recipe_path: str | Path) -> str:
         lines.extend(
             [
                 f"## {attractor['name']} — weight {float(entry['weight']):.2f}",
+                f"Class: {attractor['class']} | Status: {attractor['status']} | Risk: {attractor['risk_level']}",
                 attractor["summary"].strip(),
                 "",
                 "Behavioral cues:",
@@ -320,6 +478,27 @@ def assemble_recipe(root: str | Path, recipe_path: str | Path) -> str:
                 "",
             ]
         )
+        if attractor["risk_level"] == "high":
+            lines.extend(
+                [
+                    "High-risk constraint:",
+                    "- Keep every over-application guard active; do not generalize this attractor beyond its listed behavioral cues.",
+                    "",
+                ]
+            )
+        for policy_name in ("interaction_policy", "relational_policy"):
+            if policy_name in attractor:
+                label = policy_name.replace("_", " ").title()
+                lines.extend(
+                    [
+                        f"{label}:",
+                        *[
+                            f"- {key}: {value}"
+                            for key, value in attractor[policy_name].items()
+                        ],
+                        "",
+                    ]
+                )
 
     lines.extend(["## Global suppressions", *[f"- {item}" for item in recipe["suppressions"]], ""])
     lines.extend(["## Guardrails", *[f"- {item}" for item in recipe["guardrails"]], ""])
@@ -344,17 +523,33 @@ def create_run(
     recipe_path = Path(recipe_path)
     if not recipe_path.is_absolute():
         recipe_path = root / recipe_path
+    recipe_path = recipe_path.resolve()
+    try:
+        source_recipe = str(recipe_path.relative_to(root))
+    except ValueError as error:
+        raise LabValidationError("recipe must be inside the lab root") from error
     recipe = load_document(recipe_path)
     validate_recipe(recipe, recipe_path)
+    if not isinstance(model, str) or not model.strip():
+        raise LabValidationError("model must be a non-empty string")
+    prompts_source = root / "evals" / recipe["eval_suite"]
+    rubric_source = root / "evals" / recipe["rubric"]
+    if not prompts_source.is_file():
+        raise LabValidationError(f"{recipe_path}: eval suite not found")
+    if not rubric_source.is_file():
+        raise LabValidationError(f"{recipe_path}: rubric not found")
+    _validate_prompt_suite(prompts_source)
+    validate_rubric(load_document(rubric_source), rubric_source)
+    prompt_rows = _read_jsonl(prompts_source)
+    prompt_mode = "multi_turn" if "turns" in prompt_rows[0] else "single_turn"
+    compiled = assemble_recipe(root, recipe_path)
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=False)
 
     compiled_path = output_dir / "compiled_style.md"
-    compiled_path.write_text(assemble_recipe(root, recipe_path), encoding="utf-8")
+    compiled_path.write_text(compiled, encoding="utf-8")
     recipe_target = output_dir / "recipe.yaml"
     shutil.copy2(recipe_path, recipe_target)
-    prompts_source = root / "evals" / "prompts.jsonl"
-    rubric_source = root / "evals" / "rubric.yaml"
     prompts_target = output_dir / "prompts.jsonl"
     rubric_target = output_dir / "rubric.yaml"
     shutil.copy2(prompts_source, prompts_target)
@@ -368,7 +563,10 @@ def create_run(
         "status": "awaiting_outputs",
         "model": model,
         "recipe_id": recipe["id"],
-        "source_recipe": str(recipe_path.relative_to(root)),
+        "source_recipe": source_recipe,
+        "source_eval_suite": recipe["eval_suite"],
+        "source_rubric": recipe["rubric"],
+        "prompt_mode": prompt_mode,
         "files": {
             "compiled_style.md": _sha256(compiled_path),
             "recipe.yaml": _sha256(recipe_target),
@@ -379,6 +577,11 @@ def create_run(
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+    output_example = (
+        '{"prompt_id":"reminder_ritual","output":["...","..."],"metadata":{"seed":1}}'
+        if prompt_mode == "multi_turn"
+        else '{"prompt_id":"technical_explanation","output":"...","metadata":{"seed":1}}'
+    )
     (output_dir / "README.md").write_text(
         "# Frozen run bundle\n\n"
         "Do not edit the compiled style, prompts, rubric, or manifest after generation starts.\n"
@@ -386,7 +589,7 @@ def create_run(
         "output to `scores.jsonl`. Every score record needs `prompt_id` and a complete "
         "`scores` object.\n\n"
         "```json\n"
-        '{"prompt_id":"technical_explanation","output":"...","metadata":{"seed":1}}\n'
+        f"{output_example}\n"
         "```\n\n"
         "```json\n"
         '{"prompt_id":"technical_explanation","scores":{"task_fidelity":4},"notes":"..."}\n'

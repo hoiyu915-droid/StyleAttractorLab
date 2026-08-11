@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hoiyu915-droid/StyleAttractorLab/schemas/rubric.schema.json",
-  "title": "Evaluation rubric v0.1",
+  "title": "Evaluation rubric v0.2",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "id", "name", "scale", "dimensions"],
   "properties": {
-    "schema_version": {"const": "0.1"},
+    "schema_version": {"const": "0.2"},
     "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
     "name": {"type": "string", "minLength": 1},
     "scale": {
@@ -32,4 +32,3 @@
     }
   }
 }
-

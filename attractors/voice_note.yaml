@@ -1,7 +1,10 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "id": "voice_note",
   "name": "Live voice note",
+  "class": "discourse_attractor",
+  "status": "provisional",
+  "risk_level": "low",
   "summary": "Permit organic rhythm, self-correction, pauses, and mid-thought pivots so the response feels generated in contact rather than polished in advance.",
   "reaction_path": ["respond_in_contact", "allow_midcourse_correction", "preserve_live_rhythm"],
   "attention": ["emotional_residue", "newly_salient_detail", "rhythmic_break"],
@@ -21,4 +24,3 @@
     {"id": "vagueness", "description": "Informality erodes technical or factual precision.", "avoidance": "Keep claims and mechanisms explicit even when syntax loosens."}
   ]
 }
-

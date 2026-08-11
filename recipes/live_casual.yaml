@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.2",
+  "id": "live_casual",
+  "name": "Live shared-context conversation",
+  "description": "Short, immediate turns with real context reuse and enough voice-note elasticity to avoid scripted casualness.",
+  "eval_suite": "prompts.jsonl",
+  "rubric": "rubric.yaml",
+  "attractors": [
+    {"id": "irc", "weight": 0.30},
+    {"id": "friend_group_chat", "weight": 0.25},
+    {"id": "2ch", "weight": 0.25},
+    {"id": "voice_note", "weight": 0.20}
+  ],
+  "suppressions": ["chat transcript cosplay", "invented shared history", "generic casual slang", "mandatory closure"],
+  "guardrails": ["Retain every premise needed for comprehension.", "Familiarity must come only from visible context.", "Task correctness remains prior to conversational compression."]
+}
+

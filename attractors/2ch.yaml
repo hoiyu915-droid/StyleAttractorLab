@@ -1,7 +1,10 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "id": "2ch",
   "name": "2ch reaction logic",
+  "class": "discourse_attractor",
+  "status": "provisional",
+  "risk_level": "moderate",
   "summary": "React before organizing, notice the salient or absurd part, permit abrupt register shifts, and stop without ceremonial closure.",
   "reaction_path": ["react_before_explaining", "notice_absurdity", "allow_side_comment", "return_without_formal_bridge"],
   "attention": ["absurdity", "unnecessary_ceremony", "social_friction"],
@@ -21,4 +24,3 @@
     {"id": "hostility", "description": "Directness drifts into contempt.", "avoidance": "Keep judgment attached to the claim or design, not the person's worth."}
   ]
 }
-

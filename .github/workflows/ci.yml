@@ -22,8 +22,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Validate contracts and references
         run: python -m style_attractor_lab validate .
+      - name: Enumerate the complete catalog
+        run: python -m style_attractor_lab catalog --json
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
       - name: Compile starter recipe
         run: python -m style_attractor_lab assemble recipes/balanced_direct.yaml --output /tmp/balanced_direct.md
-
+      - name: Compile cross-turn recipe
+        run: python -m style_attractor_lab assemble recipes/relational_continuity.yaml --output /tmp/relational_continuity.md

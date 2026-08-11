@@ -1,14 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hoiyu915-droid/StyleAttractorLab/schemas/output-record.schema.json",
-  "title": "Model output JSONL record v0.1",
+  "title": "Model output JSONL record v0.2",
   "type": "object",
   "additionalProperties": false,
   "required": ["prompt_id", "output"],
   "properties": {
     "prompt_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
-    "output": {"type": "string"},
+    "output": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      ]
+    },
     "metadata": {"type": "object"}
   }
 }
-

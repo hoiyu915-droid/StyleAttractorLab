@@ -10,6 +10,7 @@ from pathlib import Path
 from .core import (
     LabValidationError,
     assemble_recipe,
+    catalog_records,
     create_run,
     summarize_scores,
     validate_repository,
@@ -22,6 +23,17 @@ def _parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate", help="validate catalog, recipes, and eval contracts")
     validate.add_argument("root", nargs="?", default=".")
+
+    catalog = subparsers.add_parser("catalog", help="list available attractors")
+    catalog.add_argument("--root", default=".")
+    catalog.add_argument(
+        "--class",
+        dest="attractor_class",
+        choices=["discourse_attractor", "interaction_attractor", "relational_attractor"],
+    )
+    catalog.add_argument("--status", choices=["provisional", "experimental"])
+    catalog.add_argument("--risk", choices=["low", "moderate", "high"])
+    catalog.add_argument("--json", action="store_true")
 
     assemble = subparsers.add_parser("assemble", help="compile one recipe into a prompt layer")
     assemble.add_argument("recipe")
@@ -48,6 +60,30 @@ def main(argv: list[str] | None = None) -> int:
             summary = validate_repository(args.root)
             print(json.dumps({"status": "valid", **summary}, indent=2))
             return 0
+        if args.command == "catalog":
+            records = catalog_records(
+                args.root,
+                attractor_class=args.attractor_class,
+                status=args.status,
+                risk_level=args.risk,
+            )
+            if args.json:
+                print(json.dumps(records, ensure_ascii=False, indent=2))
+            else:
+                print("ID\tCLASS\tSTATUS\tRISK\tNAME")
+                for record in records:
+                    print(
+                        "\t".join(
+                            [
+                                record["id"],
+                                record["class"],
+                                record["status"],
+                                record["risk_level"],
+                                record["name"],
+                            ]
+                        )
+                    )
+            return 0
         if args.command == "assemble":
             compiled = assemble_recipe(args.root, args.recipe)
             if args.output:
@@ -73,4 +109,3 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {error}", file=sys.stderr)
         return 2
     return 2
-

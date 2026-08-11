@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hoiyu915-droid/StyleAttractorLab/schemas/prompt-record.schema.json",
+  "title": "Single-turn or multi-turn prompt record v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "category", "language"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
+    "category": {"type": "string", "minLength": 1},
+    "language": {"type": "string", "minLength": 1},
+    "prompt": {"type": "string", "minLength": 1},
+    "turns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "content"],
+        "properties": {
+          "role": {"const": "user"},
+          "content": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {"required": ["prompt"], "not": {"required": ["turns"]}},
+    {"required": ["turns"], "not": {"required": ["prompt"]}}
+  ]
+}
+

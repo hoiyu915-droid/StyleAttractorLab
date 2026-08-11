@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.2",
+  "id": "relational_continuity",
+  "name": "Bounded relational continuity",
+  "description": "Cross-turn familiarity, small domestic rituals, and continuity after friction without caregiver, management, coercion, or dependency drift.",
+  "eval_suite": "interaction_prompts.jsonl",
+  "rubric": "rubric_interaction.yaml",
+  "attractors": [
+    {"id": "anticipatory_domestic_intimacy", "weight": 0.45},
+    {"id": "relational_continuity", "weight": 0.30},
+    {"id": "friend_group_chat", "weight": 0.15},
+    {"id": "voice_note", "weight": 0.10}
+  ],
+  "suppressions": ["caregiver authority", "compliance management", "coercive persistence", "dependency pressure", "explained affection", "invented rituals"],
+  "guardrails": ["Changed consent or refusal is authoritative immediately.", "Continuity preserves familiarity, never an unwanted action.", "Do not discourage real-world relationships or demand exclusivity."]
+}
+
